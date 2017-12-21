@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Array exposing (Array)
-import Stroop exposing (StroopGroupValue)
+import Stroop exposing (..)
 import Keyboard.Extra
 import Html
 import Html.Events
@@ -26,7 +26,7 @@ type alias Answer =
 
 
 type alias Model =
-    { groups : Array Stroop.StroopGroup
+    { groups : Array Stroop.Stroop
     , currentGroup : Int
     , results : Array ( StroopGroupValue, Float )
     , startTime : Float
@@ -150,7 +150,11 @@ outlierOverview answers =
 
 answerOverview : List Answer -> Html.Html msg
 answerOverview answers =
-    groupBy (.group >> .correct >> toString) answers
+    groupBy
+        (\answer ->
+            answer.group.correct |> Stroop.pickSide answer.group |> toString
+        )
+        answers
         |> Dict.toList
         |> List.map
             (\( correct, answers ) ->
@@ -158,7 +162,7 @@ answerOverview answers =
                     answerText =
                         answers
                             |> List.head
-                            |> Maybe.map (\answer -> Stroop.pickSide answer.group answer.group.correct)
+                            |> Maybe.map (\answer -> Stroop.pickSide answer.group <| Stroop.stringToSide correct)
                             |> Maybe.withDefault ""
                 in
                     List.filter (\answer -> answer.group.correct == answer.answer) answers
